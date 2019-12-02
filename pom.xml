@@ -5,8 +5,8 @@
     <groupId>org.springframework.samples</groupId>
     <artifactId>spring-petclinic</artifactId>
     <packaging>war</packaging>     
-    <version>0.0.5</version>
-    <name>petclinic</name>
+       <version>0.0.5</version>
+       <name>petclinic</name>
     
 
     <properties>
