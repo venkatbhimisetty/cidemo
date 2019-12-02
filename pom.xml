@@ -6,7 +6,7 @@
     <artifactId>spring-petclinic</artifactId>
     <version>0.0.5-SNAPSHOT</version>
 
-    <name>petclinic</name>
+    <name>cidemo</name>
     <packaging>war</packaging>
 
     <properties>
