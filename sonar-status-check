@@ -1,0 +1,42 @@
+node{
+   stage('SCM Checkout'){
+     git 'https://github.com/javahometech/my-app'
+   }
+   stage('Build'){
+      def mvnHome =  tool name: 'Maven', type: 'maven'     // Get maven home path   
+      sh "${mvnHome}/bin/mvn clean compile"
+   }
+ stage('Unit Test'){
+      def mvnHome =  tool name: 'Maven', type: 'maven'    // Get maven home path
+      sh "${mvnHome}/bin/mvn test"
+	  junit '**/target/surefire-reports/TEST-*.xml'         //archiveArtifacts 'target/'	
+   }   
+   stage('SonarQube Analysis') {
+        def mvnHome =  tool name: 'Maven', type: 'maven'
+        withSonarQubeEnv('sonarqube') { 
+          sh "${mvnHome}/bin/mvn sonar:sonar"
+        }
+    } 
+    stage("Quality Gate Statuc Check"){
+          timeout(time: 1, unit: 'HOURS') {
+              def qg = waitForQualityGate()
+              if (qg.status != 'OK') {
+              error "Pipeline aborted due to quality gate failure: ${qg.status}"
+              }
+          }
+      }    
+    stage('package'){
+      def mvnHome =  tool name: 'Maven', type: 'maven'        // Get maven home path
+      sh "${mvnHome}/bin/mvn package"
+   } 
+   stage('Push to nexus')
+        {
+		nexusPublisher nexusInstanceId: 'sample', nexusRepositoryId: '123', packages: [[$class: 'MavenPackage', mavenAssetList: [[classifier: '', extension: '', filePath: '/var/jenkins_home/workspace/Oneday/target/petclinic.war']], mavenCoordinate: [artifactId: 'mani', groupId: 'com.mani.devops', packaging: 'war', version: '1.0']]]
+        }
+        stage('Deploy to tomact')
+		{
+		sshagent(['tomcat']) {
+        sh 'scp -o StrictHostKeyChecking=no target/*.war ec2-user@10.0.1.153:/opt/apache-tomcat/webapps/'
+
+  }
+}
